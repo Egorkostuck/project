@@ -1,101 +1,101 @@
-import { signInWithPopup, UserCredential, signOut, User, AuthError } from 'firebase/auth';
+import { signInWithPopup, signOut, User } from 'firebase/auth';
 import {
   doc,
   getDoc,
   getDocs,
   setDoc,
+  updateDoc,
   DocumentData,
   collection,
   query,
   where,
+  Firestore,
 } from 'firebase/firestore';
 
-import { UserRole, Collections } from 'api/config';
+import { Collections } from 'api/types';
 import { auth, provider, db } from 'components/layout/signIn/config';
 
-export const signInWithPopupApi = async (): Promise<User | AuthError> => {
-  return signInWithPopup(auth, provider)
-    .then((result: UserCredential) => {
-      const { user } = result;
+export const signInWithPopupApi = async (): Promise<User> => {
+  const response = await signInWithPopup(auth, provider);
+  const { user } = response;
 
-      return user;
-    })
-    .catch(error => {
-      return error;
-    });
+  return user;
 };
 
-export const checkUserInDB = async (uid: string): Promise<Nullable<DocumentData>> => {
-  const collect = doc(db, Collections.Users, uid);
-  const docSnap = await getDoc(collect);
-
-  if (docSnap.exists()) {
-    console.log('Document data:', docSnap.data());
-
-    return docSnap.data();
-  }
-
-  return null;
-};
-
-interface UserDataProps {
-  user: User;
-  nickname: string;
+interface CheckDocsInDBProps {
+  uid: string;
+  collectionName: Collections;
 }
 
-export const setUserInDB = async ({
-  user,
+export const checkDocsInDB = async ({
+  uid,
+  collectionName,
+}: CheckDocsInDBProps): Promise<Nullable<DocumentData>> => {
+  const collect = doc(db, collectionName, uid);
+  const docSnap = await getDoc(collect);
+
+  if (!docSnap.exists()) {
+    return null;
+  }
+
+  return docSnap.data();
+};
+
+interface DocsInDB {
+  uid: string;
+  database: Firestore;
+  collectionName: Collections;
+  data: DocumentData;
+}
+
+export const setDocsInDB = async ({
+  uid,
+  collectionName,
+  data,
+}: DocsInDB): Promise<void> => {
+  const usersRef = collection(db, collectionName);
+
+  await setDoc(doc(usersRef, uid), data);
+};
+
+export const updateDocsInDB = async ({
+  uid,
+  database,
+  collectionName,
+  data,
+}: DocsInDB): Promise<void | boolean> => {
+  const washingtonRef = doc(database, collectionName, uid);
+
+  const response = await updateDoc(washingtonRef, data);
+
+  return response;
+};
+
+interface CheckFieldInDocsInDBProps {
+  nickname: string;
+  database: Firestore;
+  collectionName: Collections;
+  checkField: string;
+}
+
+export const checkFieldInDocsInDB = async ({
   nickname,
-}: UserDataProps): Promise<boolean> => {
-  const usersRef = collection(db, Collections.Users);
+  database,
+  collectionName,
+  checkField,
+}: CheckFieldInDocsInDBProps): Promise<boolean> => {
+  const q = query(
+    collection(database, collectionName),
+    where(checkField, '==', nickname),
+  );
 
-  const isPromise = await setDoc(doc(usersRef, user.uid), {
-    name: nickname,
-    displayName: user.displayName,
-    email: user.email,
-    createdAt: user.metadata.creationTime,
-    role: UserRole.User,
-    balance: 0,
-  })
-    .then(() => {
-      return true;
-    })
-    .catch(error => {
-      console.log('error set user', error);
+  const queryDocs = await getDocs(q);
 
-      return false;
-    });
-
-  return isPromise;
+  return !!queryDocs.docs.length;
 };
 
-export const checkUserNicknameInDB = async (nickname: string): Promise<boolean> => {
-  const q = query(collection(db, Collections.Users), where('name', '==', nickname));
+export const signOutApi = async (): Promise<void> => {
+  const response = await signOut(auth);
 
-  const queryDocs = await getDocs(q)
-    .then(docs => {
-      if (docs.docs.length) {
-        return false;
-      }
-
-      return true;
-    })
-    .catch(error => {
-      // in feature need add logger Error
-      console.log('Error check user', error);
-
-      return true;
-    });
-
-  return queryDocs;
-};
-
-export const signOutApi = (): void => {
-  signOut(auth)
-    .then(() => {
-      console.log('signOut success');
-    })
-    .catch(error => {
-      console.log('signOut error', error);
-    });
+  return response;
 };

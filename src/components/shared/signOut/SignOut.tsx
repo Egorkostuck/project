@@ -2,17 +2,14 @@ import { FC } from 'react';
 
 import { NavLink } from '@mantine/core';
 import { IoIosLogOut } from 'react-icons/io';
-import { useDispatch } from 'react-redux';
 
-import { signOutApi } from 'api/api';
-import { clearUserData } from 'store/user/userData.api';
+import { useAppDispatch } from 'store/store';
+import { userThunk } from 'store/user/userData.api';
 
 const SingOutButton: FC = () => {
-  const dispatch = useDispatch();
-  const handleClick = (): void => {
-    signOutApi();
-    dispatch(clearUserData());
-    localStorage.removeItem('uid');
+  const dispatch = useAppDispatch();
+  const handleClick = async (): Promise<void> => {
+    dispatch(userThunk.signOut());
   };
 
   return (

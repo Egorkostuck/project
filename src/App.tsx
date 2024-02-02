@@ -3,25 +3,19 @@ import { FC } from 'react';
 import { AppShell, NavLink } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { GoSignIn } from 'react-icons/go';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RouterProvider } from 'react-router-dom';
+
+import NotificationError from './components/shared/notificationError/NotificationError';
+import { RootState } from './store/store';
 
 import Header from 'components/layout/header/Header';
-import SignIn from 'components/layout/signIn/SignIn';
 import SingOutButton from 'components/shared/signOut/SignOut';
-
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <div>Hello world!</div>,
-  },
-  {
-    path: '/sign-in',
-    element: <SignIn />,
-  },
-]);
+import router from 'routers/router';
 
 const App: FC = () => {
   const [opened, { toggle }] = useDisclosure();
+  const error = useSelector((state: RootState) => state.user.error);
 
   return (
     <AppShell
@@ -39,6 +33,8 @@ const App: FC = () => {
 
       <AppShell.Main>
         <RouterProvider router={router} />
+
+        {error && <NotificationError error={error} />}
       </AppShell.Main>
     </AppShell>
   );

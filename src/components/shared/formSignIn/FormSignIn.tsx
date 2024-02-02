@@ -1,85 +1,93 @@
-import { ChangeEvent, FormEvent, FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 
 import { TextInput, Button } from '@mantine/core';
-import { useDispatch, useSelector } from 'react-redux';
+import { useForm } from '@mantine/form';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-import { checkUserNicknameInDB, setUserInDB } from 'api/api';
+import { UserRole } from 'api/types';
 import { delay } from 'components/layout/signIn/config';
-import { minWordLength } from 'components/shared/formSignIn/config';
-import { InputValidation } from 'components/shared/formSignIn/types';
+import {
+  minWordLength,
+  placeholderTextInput,
+  sizeButton,
+  sizeTextInput,
+} from 'components/shared/formSignIn/config';
+import { InputValidation, TypeButton } from 'components/shared/formSignIn/types';
 import useDebounced from 'hooks/debounced/useDebounced';
-import { setUserIsLoggedIn } from 'store/user/userData.api';
+import { useAppDispatch, RootState } from 'store/store';
+import { userThunk } from 'store/user/userData.api';
 
 const FormSignIn: FC = () => {
-  const dispatch = useDispatch();
-  const { user } = useSelector((state: any) => state.user);
+  const dispatch = useAppDispatch();
+  const user = useSelector((state: RootState) => state.user.user);
+  const isNameAvailable = useSelector((state: RootState) => state.user.isNameAvailable);
   const [nickname, setNickname] = useState('');
-  const [isNameAvailable, setIsNameAvailable] = useState(true);
-  const [error, setError] = useState<Nullable<string>>(null);
   const navigate = useNavigate();
 
-  const validate = (): void => {
-    let errorText = null;
+  const form = useForm({
+    initialValues: { name: '' },
+    validateInputOnChange: true,
+    validate: {
+      name: (value: string) => {
+        if (value.length < minWordLength) {
+          return InputValidation.Length;
+        }
 
-    if (nickname === '') return;
+        setNickname(value);
 
-    if (nickname.length < minWordLength) {
-      errorText = InputValidation.Length;
-    }
-
-    if (nickname.length > minWordLength && !isNameAvailable) {
-      errorText = InputValidation.Invalid;
-    }
-
-    setError(errorText);
-  };
+        return null;
+      },
+    },
+  });
 
   const checkEnterName = async (): Promise<void> => {
     if (nickname !== '') {
-      const resultQuery = await checkUserNicknameInDB(nickname);
-
-      setError(null);
-      setIsNameAvailable(true);
-
-      setIsNameAvailable(resultQuery);
+      dispatch(userThunk.checkFieldName(nickname));
     }
-
-    validate();
   };
 
   useDebounced({
     callback: () => checkEnterName(),
     delay,
-    dependencies: [nickname, isNameAvailable],
+    dependencies: [nickname],
   });
 
-  const enterNickname = (e: ChangeEvent<HTMLInputElement>): void => {
-    setNickname(e.target.value);
-  };
+  useEffect(() => {
+    if (isNameAvailable) return;
+
+    form.setFieldError('name', InputValidation.Invalid);
+  }, [isNameAvailable]);
 
   const setUser = async (): Promise<void> => {
-    const result: boolean = await setUserInDB({ user, nickname });
+    const data = {
+      name: nickname,
+      displayName: user?.displayName,
+      email: user?.email,
+      createdAt: user?.metadata.creationTime,
+      role: UserRole.User,
+      balance: 0,
+    };
 
-    dispatch(setUserIsLoggedIn(result));
+    dispatch(userThunk.setDoc(data));
   };
-  const submitForm = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
 
-    if (error) return;
+  const submitForm = async (): Promise<void> => {
+    const { errors } = form;
+
+    if (errors.name) return;
 
     await setUser().then(() => navigate('/'));
   };
 
   return (
-    <form onSubmit={submitForm}>
+    <form onSubmit={form.onSubmit(() => submitForm())}>
       <TextInput
-        onChange={enterNickname}
-        mt="md"
-        placeholder="Enter your nickname"
-        error={error}
+        mt={sizeTextInput}
+        placeholder={placeholderTextInput}
+        {...form.getInputProps('name')}
       />
-      <Button type="submit" mt="sm">
+      <Button type={TypeButton.Submit} mt={sizeButton}>
         Submit
       </Button>
     </form>

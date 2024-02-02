@@ -16,8 +16,27 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
-
 const delay = 500;
 const color = 3;
+const buttonSize = 'sm';
+const buttonMT = '30';
+const centerMih = 'calc(100vh - 100px)';
+const paperBg = 'var(--mantine-color-gray-light)';
+const paperTA = 'center';
+const paperShadow = 'xs';
+const paperP = 'xl';
 
-export { auth, provider, db, delay, color };
+export {
+  auth,
+  provider,
+  db,
+  delay,
+  color,
+  buttonSize,
+  buttonMT,
+  centerMih,
+  paperBg,
+  paperTA,
+  paperShadow,
+  paperP,
+};

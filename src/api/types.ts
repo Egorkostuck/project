@@ -6,3 +6,7 @@ export enum UserRole {
 export enum Collections {
   Users = 'users',
 }
+
+export enum Fields {
+  Name = 'name',
+}

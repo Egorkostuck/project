@@ -9,11 +9,11 @@ import {
   collection,
   query,
   where,
-  Firestore,
 } from 'firebase/firestore';
 
 import { Collections } from 'api/types';
-import { auth, provider, db } from 'components/layout/signIn/config';
+import { auth, db } from 'appConfig';
+import { provider } from 'components/layout/signIn/config';
 
 export const signInWithPopupApi = async (): Promise<User> => {
   const response = await signInWithPopup(auth, provider);
@@ -43,7 +43,6 @@ export const checkDocsInDB = async ({
 
 interface DocsInDB {
   uid: string;
-  database: Firestore;
   collectionName: Collections;
   data: DocumentData;
 }
@@ -53,18 +52,17 @@ export const setDocsInDB = async ({
   collectionName,
   data,
 }: DocsInDB): Promise<void> => {
-  const usersRef = collection(db, collectionName);
+  const collectionRef = collection(db, collectionName);
 
-  await setDoc(doc(usersRef, uid), data);
+  await setDoc(doc(collectionRef, uid), data);
 };
 
 export const updateDocsInDB = async ({
   uid,
-  database,
   collectionName,
   data,
 }: DocsInDB): Promise<void | boolean> => {
-  const washingtonRef = doc(database, collectionName, uid);
+  const washingtonRef = doc(db, collectionName, uid);
 
   const response = await updateDoc(washingtonRef, data);
 
@@ -73,21 +71,16 @@ export const updateDocsInDB = async ({
 
 interface CheckFieldInDocsInDBProps {
   nickname: string;
-  database: Firestore;
   collectionName: Collections;
   checkField: string;
 }
 
 export const checkFieldInDocsInDB = async ({
   nickname,
-  database,
   collectionName,
   checkField,
 }: CheckFieldInDocsInDBProps): Promise<boolean> => {
-  const q = query(
-    collection(database, collectionName),
-    where(checkField, '==', nickname),
-  );
+  const q = query(collection(db, collectionName), where(checkField, '==', nickname));
 
   const queryDocs = await getDocs(q);
 

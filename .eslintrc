@@ -243,6 +243,10 @@
         [
           "utils",
           "./src/utils"
+        ],
+        [
+          "appConfig",
+          "./src/appConfig"
         ]
       ]
     }

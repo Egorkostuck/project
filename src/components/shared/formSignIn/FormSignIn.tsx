@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useEffect } from 'react';
 
 import { TextInput, Button } from '@mantine/core';
 import { useForm } from '@mantine/form';
@@ -7,14 +7,10 @@ import { useNavigate } from 'react-router-dom';
 
 import { UserRole } from 'api/types';
 import { delay } from 'components/layout/signIn/config';
-import {
-  minWordLength,
-  placeholderTextInput,
-  sizeButton,
-  sizeTextInput,
-} from 'components/shared/formSignIn/config';
-import { InputValidation, TypeButton } from 'components/shared/formSignIn/types';
+import { minWordLength } from 'components/shared/formSignIn/config';
+import { InputValidation } from 'components/shared/formSignIn/types';
 import useDebounced from 'hooks/debounced/useDebounced';
+import { Path } from 'routers/types';
 import { useAppDispatch, RootState } from 'store/store';
 import { userThunk } from 'store/user/userData.api';
 
@@ -22,7 +18,6 @@ const FormSignIn: FC = () => {
   const dispatch = useAppDispatch();
   const user = useSelector((state: RootState) => state.user.user);
   const isNameAvailable = useSelector((state: RootState) => state.user.isNameAvailable);
-  const [nickname, setNickname] = useState('');
   const navigate = useNavigate();
 
   const form = useForm({
@@ -34,23 +29,25 @@ const FormSignIn: FC = () => {
           return InputValidation.Length;
         }
 
-        setNickname(value);
-
         return null;
       },
     },
   });
 
-  const checkEnterName = async (): Promise<void> => {
-    if (nickname !== '') {
-      dispatch(userThunk.checkFieldName(nickname));
+  const { name } = form.values;
+
+  const checkEnterName = (): void => {
+    if (name === '') {
+      return;
     }
+
+    dispatch(userThunk.checkFieldName(name));
   };
 
   useDebounced({
-    callback: () => checkEnterName(),
+    callback: checkEnterName,
     delay,
-    dependencies: [nickname],
+    dependencies: [name],
   });
 
   useEffect(() => {
@@ -59,9 +56,9 @@ const FormSignIn: FC = () => {
     form.setFieldError('name', InputValidation.Invalid);
   }, [isNameAvailable]);
 
-  const setUser = async (): Promise<void> => {
+  const setUser = (): void => {
     const data = {
-      name: nickname,
+      name,
       displayName: user?.displayName,
       email: user?.email,
       createdAt: user?.metadata.creationTime,
@@ -69,25 +66,25 @@ const FormSignIn: FC = () => {
       balance: 0,
     };
 
-    dispatch(userThunk.setDoc(data));
+    dispatch(userThunk.setDoc(data)).then(() => navigate(Path.Home));
   };
 
-  const submitForm = async (): Promise<void> => {
+  const submitForm = (): void => {
     const { errors } = form;
 
     if (errors.name) return;
 
-    await setUser().then(() => navigate('/'));
+    setUser();
   };
 
   return (
-    <form onSubmit={form.onSubmit(() => submitForm())}>
+    <form onSubmit={form.onSubmit(submitForm)}>
       <TextInput
-        mt={sizeTextInput}
-        placeholder={placeholderTextInput}
+        mt="md"
+        placeholder="Enter your nickname"
         {...form.getInputProps('name')}
       />
-      <Button type={TypeButton.Submit} mt={sizeButton}>
+      <Button type="submit" mt="sm">
         Submit
       </Button>
     </form>

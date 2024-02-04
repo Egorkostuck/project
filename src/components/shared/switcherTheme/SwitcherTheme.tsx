@@ -8,8 +8,6 @@ import {
   iconSize,
   iconColorMoon,
   iconColorSun,
-  colorSwitcher,
-  sizeSwitcher,
 } from 'components/shared/switcherTheme/config';
 import { ColorScheme } from 'components/shared/switcherTheme/types';
 
@@ -25,9 +23,9 @@ const SwitcherTheme: FC = () => {
 
   return (
     <Switch
-      onClick={() => toggleColorScheme()}
-      size={sizeSwitcher}
-      color={colorSwitcher}
+      onClick={toggleColorScheme}
+      size="md"
+      color="dark.4"
       onLabel={sunIcon}
       offLabel={moonIcon}
       checked={colorScheme === ColorScheme.Dark}

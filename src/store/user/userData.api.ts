@@ -2,8 +2,6 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { User } from 'firebase/auth';
 import { DocumentData } from 'firebase/firestore';
 
-import { db } from '../../components/layout/signIn/config';
-import { Fields } from '../../components/shared/formSignIn/types';
 import { AppDispatch, RootState } from '../store';
 
 import {
@@ -13,7 +11,7 @@ import {
   signInWithPopupApi,
   signOutApi,
 } from 'api/api';
-import { Collections } from 'api/types';
+import { Fields, Collections } from 'api/types';
 import { handleError } from 'helpers/handleError';
 
 export interface IInitialState {
@@ -164,7 +162,6 @@ const setDoc = createAsyncThunk<
   try {
     await setDocsInDB({
       uid: user.token,
-      database: db,
       collectionName: Collections.Users,
       data,
     });
@@ -185,7 +182,6 @@ const checkFieldName = createAsyncThunk<
   try {
     const isResponse = await checkFieldInDocsInDB({
       nickname: data,
-      database: db,
       collectionName: Collections.Users,
       checkField: Fields.Name,
     });
@@ -199,7 +195,7 @@ const checkFieldName = createAsyncThunk<
 });
 
 const signOut = createAsyncThunk<
-  boolean,
+  boolean | undefined,
   void,
   { state: RootState; dispatch?: AppDispatch; rejectValue: string }
 >('user/signOut', async (data, thunkApi) => {
@@ -207,8 +203,6 @@ const signOut = createAsyncThunk<
 
   try {
     await signOutApi();
-
-    return true;
   } catch (error) {
     const message = handleError(error as Error);
 

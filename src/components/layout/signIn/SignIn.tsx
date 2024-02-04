@@ -5,18 +5,9 @@ import { FcGoogle } from 'react-icons/fc';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-import {
-  color,
-  buttonSize,
-  buttonMT,
-  centerMih,
-  paperShadow,
-  paperP,
-  paperBg,
-  paperTA,
-} from 'components/layout/signIn/config';
-import { ButtonVariant } from 'components/layout/signIn/types';
+import { color } from 'components/layout/signIn/config';
 import FormSignIn from 'components/shared/formSignIn/FormSignIn';
+import { Path } from 'routers/types';
 import { useAppDispatch, RootState } from 'store/store';
 import { userThunk } from 'store/user/userData.api';
 
@@ -37,25 +28,25 @@ const SignIn: FC = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      navigate('/');
+      navigate(Path.Home);
     }
   }, [isLoggedIn]);
 
-  const handleClick = async (): Promise<void> => {
+  const handleClick = (): void => {
     dispatch(userThunk.signInWithGoogle());
   };
 
   return (
-    <Center mih={centerMih}>
-      <Paper shadow={paperShadow} p={paperP} bg={paperBg} ta={paperTA}>
+    <Center mih="calc(100vh - 100px)">
+      <Paper shadow="xs" p="xl" bg="var(--mantine-color-gray-light)" ta="center">
         <Title order={3}>Sign In</Title>
 
         {!user && !isLoggedIn && (
           <Button
             onClick={handleClick}
-            mt={buttonMT}
-            size={buttonSize}
-            variant={ButtonVariant.White}
+            mt="30"
+            size="sm"
+            variant="white"
             color={theme.colors.dark[color]}
             leftSection={<FcGoogle size={14} />}
           >

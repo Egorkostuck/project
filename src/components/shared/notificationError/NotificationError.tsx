@@ -3,11 +3,7 @@ import { FC } from 'react';
 import { Notification } from '@mantine/core';
 import { MdOutlineError } from 'react-icons/md';
 
-import {
-  colorIcon,
-  iconSizeRem,
-  styles,
-} from 'components/shared/notificationError/config';
+import { iconSizeRem, styles } from 'components/shared/notificationError/config';
 
 interface Props {
   error: string;
@@ -24,7 +20,7 @@ const NotificationError: FC<Props> = ({ error }) => {
       withCloseButton={false}
       closeButtonProps={closeButtonProps}
       style={styles}
-      icon={<MdOutlineError color={colorIcon} size={iconSizeRem} />}
+      icon={<MdOutlineError color="red" size={iconSizeRem} />}
       color="transparent"
       title="Error"
     >
